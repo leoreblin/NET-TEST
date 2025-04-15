@@ -52,8 +52,10 @@ public class Program
 
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+            builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
+
             var app = builder.Build();
-            app.UseMiddleware<ValidationExceptionMiddleware>();
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {
