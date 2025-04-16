@@ -32,7 +32,7 @@ public class Program
             builder.Services.AddDbContext<DefaultContext>(options =>
                 options.UseNpgsql(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly("Ambev.DeveloperEvaluation.ORM")
+                    b => b.MigrationsAssembly(typeof(OrmLayer).Assembly.FullName)
                 )
             );
 
@@ -55,6 +55,11 @@ public class Program
             builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
 
             var app = builder.Build();
+
+            using var scope = app.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            MigrationInitializer.ApplyMigrations(services);
+
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             if (app.Environment.IsDevelopment())
