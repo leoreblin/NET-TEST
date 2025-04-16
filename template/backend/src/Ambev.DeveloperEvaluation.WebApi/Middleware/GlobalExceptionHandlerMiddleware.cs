@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text.Json;
 using Ambev.DeveloperEvaluation.Common.Errors;
+using Ambev.DeveloperEvaluation.Domain.Exceptions;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using FluentValidation;
 
@@ -73,6 +74,21 @@ public sealed class GlobalExceptionHandlerMiddleware : IMiddleware
             ValidationException validationException => (
                 HttpStatusCode.BadRequest, 
                 validationException.Errors.Distinct().Select(e => new Error(e.ErrorCode, e.ErrorMessage)).ToArray()
+            ),
+
+            DomainException domainException => (
+                HttpStatusCode.UnprocessableEntity,
+                new[] { new Error("Domain.Error", domainException.Message) }
+            ),
+
+            UnauthorizedAccessException unauthorizedException => (
+                HttpStatusCode.Unauthorized,
+                new[] { new Error("Unauthorized", unauthorizedException.Message) }
+            ),
+
+            KeyNotFoundException notFoundException => (
+                HttpStatusCode.NotFound,
+                new[] { new Error("NotFound", notFoundException.Message) }
             ),
 
             _ => (HttpStatusCode.InternalServerError, new[] { ApiErrors.ServerError })

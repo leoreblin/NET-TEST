@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 
-namespace Ambev.DeveloperEvaluation.ORM;
+namespace Ambev.DeveloperEvaluation.ORM.Abstractions;
 
 public class DefaultContextFactory : IDesignTimeDbContextFactory<DefaultContext>
 {
