@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Ambev.DeveloperEvaluation.Domain.Common;
+﻿using Ambev.DeveloperEvaluation.Domain.Common;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
-public class Sale : BaseEntity
+public class Sale : AggregateRoot
 {
+    public string Number { get; private set; }
+
+    public DateTime OccurredAt { get; private set; }
+
+    public Guid CustomerId { get; set; }
+
+    public string CustomerName { get; private set; }
+
+
 }

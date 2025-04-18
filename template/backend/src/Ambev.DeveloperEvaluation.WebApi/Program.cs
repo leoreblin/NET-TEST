@@ -4,7 +4,9 @@ using Ambev.DeveloperEvaluation.Common.Logging;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.IoC;
-using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.ORM.NoSql.Configurations;
+using Ambev.DeveloperEvaluation.ORM.NoSql.Extensions;
+using Ambev.DeveloperEvaluation.ORM.Sql;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -36,11 +38,21 @@ public class Program
                 )
             );
 
+            builder.Services.AddOptions<MongoDbSettings>()
+               .BindConfiguration(MongoDbSettings.ConfigurationSection)
+               .ValidateDataAnnotations()
+               .ValidateOnStart();
+
+            builder.Services.AddMongoDb();
+
             builder.Services.AddJwtAuthentication(builder.Configuration);
 
             builder.RegisterDependencies();
 
-            builder.Services.AddAutoMapper(typeof(Program).Assembly, typeof(ApplicationLayer).Assembly);
+            builder.Services.AddAutoMapper(
+                typeof(Program).Assembly,
+                typeof(ApplicationLayer).Assembly,
+                typeof(OrmLayer).Assembly);
 
             builder.Services.AddMediatR(cfg =>
             {

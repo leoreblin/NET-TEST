@@ -91,6 +91,10 @@ public sealed class GlobalExceptionHandlerMiddleware : IMiddleware
                 new[] { new Error("NotFound", notFoundException.Message) }
             ),
 
-            _ => (HttpStatusCode.InternalServerError, new[] { ApiErrors.ServerError })
+            _ => (HttpStatusCode.InternalServerError, new[]
+            { 
+                ApiErrors.ServerError, 
+                new Error("Exception", exception.Message) 
+            })
         };
 }
