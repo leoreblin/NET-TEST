@@ -45,11 +45,25 @@ public static class PaginatedListExtensions
         return new PaginatedList<T>(pagedFluent, items.Count, pageNumber, pageSize);
     }
 
+    /// <summary>
+    /// Orders a typed queryable collection by ascending.
+    /// </summary>
+    /// <typeparam name="T">The type of the queryable collection.</typeparam>
+    /// <param name="source">The queryable collection.</param>
+    /// <param name="propertyName">The property of the type.</param>
+    /// <returns>The queryable collection ordered.</returns>
     private static IOrderedQueryable<T> OrderBy<T>(this IQueryable<T> source, string propertyName)
     {
         return source.OrderBy(ToLambda<T>(propertyName));
     }
 
+    /// <summary>
+    /// Orders a typed queryable collection by descending.
+    /// </summary>
+    /// <typeparam name="T">The type of the queryable collection.</typeparam>
+    /// <param name="source">The queryable collection.</param>
+    /// <param name="propertyName">The property of the type.</param>
+    /// <returns>The queryable collection ordered.</returns>
     private static IOrderedQueryable<T> OrderByDescending<T>(this IQueryable<T> source, string propertyName)
     {
         return source.OrderByDescending(ToLambda<T>(propertyName));

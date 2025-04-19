@@ -7,6 +7,7 @@ namespace Ambev.DeveloperEvaluation.ORM.Sql;
 public class DefaultContext : DbContext
 {
     public DbSet<User> Users { get; set; }
+    public DbSet<Sale> Sales { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultContext"/> class.
