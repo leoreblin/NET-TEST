@@ -19,4 +19,14 @@ public interface IProductRepository
         string? orderBy = null,
         bool isDescending = false,
         string? term = null);
+
+    /// <summary>
+    /// Check if products exist.
+    /// </summary>
+    /// <param name="productIds">The products identifiers.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    Task<bool> ProductsExistAsync(
+        IEnumerable<Guid> productIds,
+        CancellationToken cancellationToken = default);
 }

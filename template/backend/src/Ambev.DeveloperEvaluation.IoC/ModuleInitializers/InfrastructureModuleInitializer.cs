@@ -18,5 +18,6 @@ public class InfrastructureModuleInitializer : IModuleInitializer
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IProductRepository, MongoProductRepository>();
+        builder.Services.AddScoped<ISaleRepository, SaleRepository>();
     }
 }

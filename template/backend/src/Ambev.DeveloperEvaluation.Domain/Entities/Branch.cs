@@ -5,9 +5,14 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
 public class Branch : BaseEntity
 {
-    public string Name { get; }
+    public string Name { get; private set; } = string.Empty;
 
-    public string FederalId { get; }
+    public string FederalId { get; private set; } = string.Empty;
+
+    /// <summary>
+    /// Required by EF Core.
+    /// </summary>
+    private Branch() { }
 
     public Branch(string name, string federalId)
     {

@@ -6,6 +6,8 @@ namespace Ambev.DeveloperEvaluation.ORM.Sql;
 
 public class DefaultContext : DbContext
 {
+    private readonly string _fallbackConnString = "Host=localhost;Port=5432;Database=developer_evaluation;Username=developer;Password=ev@luAt10n";
+
     public DbSet<User> Users { get; set; }
     public DbSet<Sale> Sales { get; set; }
 
@@ -13,7 +15,7 @@ public class DefaultContext : DbContext
     /// Initializes a new instance of the <see cref="DefaultContext"/> class.
     /// </summary>
     /// <remarks>Used by EF Core Tools.</remarks>
-    public DefaultContext()
+    public DefaultContext() : base()
     {
     }
 
@@ -29,5 +31,15 @@ public class DefaultContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         base.OnModelCreating(modelBuilder);
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseNpgsql(_fallbackConnString);
+        }
+
+        base.OnConfiguring(optionsBuilder);
     }
 }

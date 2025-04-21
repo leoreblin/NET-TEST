@@ -19,6 +19,7 @@ public class MongoProductRepository : IProductRepository
         _mapper = mapper;
     }
 
+    /// <inheritdoc />
     public async Task<PaginatedList<Product>> GetPaginatedAsync(
         int pageNumber, 
         int pageSize,
@@ -38,5 +39,16 @@ public class MongoProductRepository : IProductRepository
         var paginatedResult = await found.ToPagedListAsync(pageNumber, pageSize, orderBy, isDescending);
 
         return paginatedResult.Map(_mapper.Map<Product>);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> ProductsExistAsync(
+        IEnumerable<Guid> productIds,
+        CancellationToken cancellationToken = default)
+    {
+        var distinctIds = productIds.Distinct().ToList();
+        var filter = Builders<ProductDocument>.Filter.In(p => p.ExternalId, distinctIds);
+        var existingCount = await _products.CountDocumentsAsync(filter, cancellationToken: cancellationToken);
+        return existingCount == distinctIds.Count;
     }
 }
