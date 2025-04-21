@@ -21,10 +21,9 @@ public class Branch : BaseEntity
             throw new DomainException("Invalid name of Branch.");
         }
 
-        if (string.IsNullOrWhiteSpace(federalId)
-              || federalId.Length != 14)
+        if (string.IsNullOrWhiteSpace(federalId) || federalId.Length != 14)
         {
-            throw new DomainException("Invalid Federeal ID. It must contain 14 digits only.");
+            throw new DomainException("Invalid Federal ID. It must contain 14 digits only.");
         }
 
         Name = name;

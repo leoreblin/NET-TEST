@@ -6,10 +6,11 @@ namespace Ambev.DeveloperEvaluation.ORM.Sql;
 
 public class DefaultContext : DbContext
 {
-    private readonly string _fallbackConnString = "Host=localhost;Port=5432;Database=developer_evaluation;Username=developer;Password=ev@luAt10n";
+    private readonly string _fallbackConnString = "Host=ambev.developerevaluation.database;Port=5432;Database=developer_evaluation;Username=developer;Password=ev@luAt10n";
 
     public DbSet<User> Users { get; set; }
     public DbSet<Sale> Sales { get; set; }
+    public DbSet<Branch> Branches { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultContext"/> class.

@@ -16,8 +16,12 @@ internal sealed class SaleCreatedEventHandler : INotificationHandler<SaleCreated
 
     public async Task Handle(SaleCreatedEvent notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation(
-            "Sale created: {SaleId}, {CustomerId}, {BranchId}, {TotalAmount}",
+        _logger.LogInformation("""
+            Sale created: {SaleId}
+            Cusomer ID: {CustomerId}
+            Branch ID: {BranchId}
+            Total: {TotalAmount}
+            """,
             notification.Sale.Id, notification.Sale.CustomerId, notification.Sale.BranchId, notification.Sale.TotalAmount);
 
         await Task.CompletedTask;

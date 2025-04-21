@@ -16,7 +16,7 @@ namespace Ambev.DeveloperEvaluation.WebApi;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         try
         {
@@ -70,6 +70,8 @@ public class Program
 
             using var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;
+            var dbContext = services.GetService<DefaultContext>();
+            await DefaultContextSeed.SeedAsync(dbContext);
             MigrationInitializer.ApplyMigrations(services);
 
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();

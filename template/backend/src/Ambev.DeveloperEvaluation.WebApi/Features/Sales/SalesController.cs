@@ -79,7 +79,7 @@ public class SalesController : BaseController
         var sale = await _saleRepository.GetByIdAsync(id, cancellationToken);
         if (sale is null)
         {
-            return NotFound("Sale not found.");
+            return NotFound();
         }
 
         // todo: cancel the sale

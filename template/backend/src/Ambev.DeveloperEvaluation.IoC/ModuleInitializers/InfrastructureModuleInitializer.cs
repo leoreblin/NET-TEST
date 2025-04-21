@@ -16,8 +16,9 @@ public class InfrastructureModuleInitializer : IModuleInitializer
     {
         builder.Services.AddScoped<DbContext>(provider => provider.GetRequiredService<DefaultContext>());
         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-        builder.Services.AddScoped<IUserRepository, UserRepository>();
-        builder.Services.AddScoped<IProductRepository, MongoProductRepository>();
-        builder.Services.AddScoped<ISaleRepository, SaleRepository>();
+        builder.Services.AddTransient<IUserRepository, UserRepository>();
+        builder.Services.AddTransient<IProductRepository, MongoProductRepository>();
+        builder.Services.AddTransient<ISaleRepository, SaleRepository>();
+        builder.Services.AddTransient<IBranchRepository, BranchRepository>();
     }
 }

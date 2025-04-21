@@ -7,10 +7,11 @@ public static class PaginatedListExtensions
 {
     public static async Task<PaginatedList<T>> ToPagedListAsync<T>(
         this IQueryable<T> source, 
-        int pageNumber, 
-        int pageSize,
+        int pageNumber = 1, 
+        int pageSize = 10,
         string? orderBy = null,
-        bool isDescending = false)
+        bool isDescending = false,
+        CancellationToken cancellationToken = default)
     {
         if (!string.IsNullOrWhiteSpace(orderBy))
         {
@@ -19,8 +20,12 @@ public static class PaginatedListExtensions
                 : source.OrderBy(orderBy);
         }
 
-        var count = await source.ToAsyncEnumerable().CountAsync();
-        var items = await source.ToAsyncEnumerable().Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
+        var count = await source.ToAsyncEnumerable().CountAsync(cancellationToken);
+        var items = await source.ToAsyncEnumerable()
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
         return new PaginatedList<T>(items, count, pageNumber, pageSize);
     }
 
