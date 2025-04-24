@@ -57,6 +57,38 @@ public class SalesController : BaseController
     }
 
     /// <summary>
+    /// Creates a new sale from the customer's cart.
+    /// </summary>
+    /// <param name="request">The sale creation request.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>The created sale details.</returns>
+    [HttpPost("from-cart")]
+    [ProducesResponseType(typeof(ApiResponseWithData<Guid>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateFromCart(
+        [FromBody] CreateSaleFromCartRequest request, 
+        CancellationToken cancellationToken)
+    {
+        var requestValidator = new CreateSaleFromCartRequestValidator();
+        var validationResult = await requestValidator.ValidateAsync(request, cancellationToken);
+
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors);
+        }
+
+        var command = _mapper.Map<CreateSaleCommand>(request);
+        var response = await _mediator.Send(command, cancellationToken);
+
+        return Created(string.Empty, new ApiResponseWithData<Guid>
+        {
+            Success = true,
+            Message = "Sale created successfully",
+            Data = response.Id
+        });
+    }
+
+    /// <summary>
     /// Cancels a sale.
     /// </summary>
     /// <param name="id">The sale identifier.</param>

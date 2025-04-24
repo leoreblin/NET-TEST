@@ -3,14 +3,15 @@ using Ambev.DeveloperEvaluation.Common.HealthChecks;
 using Ambev.DeveloperEvaluation.Common.Logging;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
+using Ambev.DeveloperEvaluation.Data.NoSql.Configurations;
+using Ambev.DeveloperEvaluation.Data.NoSql.Extensions;
 using Ambev.DeveloperEvaluation.IoC;
-using Ambev.DeveloperEvaluation.ORM.NoSql.Configurations;
-using Ambev.DeveloperEvaluation.ORM.NoSql.Extensions;
-using Ambev.DeveloperEvaluation.ORM.Sql;
+using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using StackExchange.Redis;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
 
@@ -44,6 +45,12 @@ public class Program
                .ValidateOnStart();
 
             builder.Services.AddMongoDb();
+
+            builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+                ConnectionMultiplexer.Connect(
+                    builder.Configuration.GetConnectionString("Redis")!
+                )
+            );
 
             builder.Services.AddJwtAuthentication(builder.Configuration);
 

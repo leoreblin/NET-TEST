@@ -53,10 +53,10 @@ services:
   ambev.developerevaluation.cache:
     container_name: ambev_developer_evaluation_cache 
     image: redis:7.4.1-alpine     
-    command: redis-server --requirepass ev@luAt10n
+    command: redis-server --requirepass ev4luAt!0n
     environment:
        MONGO_INITDB_ROOT_USERNAME: developer
-       MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
+       MONGO_INITDB_ROOT_PASSWORD: ev4luAt!0n
     ports:
        - "6379"
 

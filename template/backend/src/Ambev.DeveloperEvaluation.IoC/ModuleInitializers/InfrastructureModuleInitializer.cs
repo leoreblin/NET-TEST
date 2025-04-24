@@ -1,9 +1,9 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Abstractions;
+using Ambev.DeveloperEvaluation.Data.NoSql.Repositories;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
-using Ambev.DeveloperEvaluation.ORM.NoSql.Repositories;
-using Ambev.DeveloperEvaluation.ORM.Sql;
-using Ambev.DeveloperEvaluation.ORM.Sql.Abstractions;
-using Ambev.DeveloperEvaluation.ORM.Sql.Repositories;
+using Ambev.DeveloperEvaluation.ORM;
+using Ambev.DeveloperEvaluation.ORM.Abstractions;
+using Ambev.DeveloperEvaluation.ORM.Repositories;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
