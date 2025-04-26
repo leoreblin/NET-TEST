@@ -7,17 +7,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Ambev.DeveloperEvaluation.Domain\Ambev.DeveloperEvaluation.Domain.csproj" />
-  </ItemGroup>
+  </ItemGroup>	
 
   <ItemGroup>
+	<InternalsVisibleTo Include="Ambev.DeveloperEvaluation.Unit" />
     <PackageReference Include="AutoMapper" Version="13.0.1" />    
     <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="OneOf" Version="3.0.271" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Products\" />
-    <Folder Include="Sales\CancelSale\" />
   </ItemGroup>
 
 </Project>

@@ -58,7 +58,7 @@ services:
        MONGO_INITDB_ROOT_USERNAME: developer
        MONGO_INITDB_ROOT_PASSWORD: ev4luAt!0n
     ports:
-       - "6379"
+       - "6379:6379"
 
 volumes:
   mongodb_data:

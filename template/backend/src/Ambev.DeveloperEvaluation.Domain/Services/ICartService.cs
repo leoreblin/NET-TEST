@@ -28,4 +28,12 @@ public interface ICartService
     /// <param name="userId">The user identifier.</param>
     /// <returns>A completed <see cref="Task"/>.</returns>
     Task ClearCartAsync(Guid userId);
+
+    /// <summary>
+    /// Removes a product from the user's cart.
+    /// </summary>
+    /// <param name="userId">The user identifier.</param>
+    /// <param name="productId">The product identifier.</param>
+    /// <returns></returns>
+    Task RemoveProductAsync(Guid userId, Guid productId);
 }

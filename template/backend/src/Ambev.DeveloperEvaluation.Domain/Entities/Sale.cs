@@ -102,6 +102,27 @@ public class Sale : AggregateRoot
     }
 
     /// <summary>
+    /// Removes an item from the sale.
+    /// </summary>
+    /// <param name="itemId">The sale item identifier.</param>
+    /// <exception cref="DomainException"></exception>
+    public void CancelItem(Guid itemId)
+    {
+        if (IsCancelled)
+        {
+            throw new DomainException("Cannot modify cancelled sale.");
+        }
+
+        var item = _items.FirstOrDefault(i => i.Id == itemId)
+            ?? throw new DomainException("Item not found in the sale.");
+
+        item.Cancel();
+
+        UpdateTotalAmount();
+        Raise(new SaleModifiedEvent(this));
+    }
+
+    /// <summary>
     /// Cancels the sale.
     /// </summary>
     public void Cancel()
@@ -116,7 +137,7 @@ public class Sale : AggregateRoot
     /// Updates the total amount of the sale.
     /// </summary>
     public void UpdateTotalAmount() =>
-        TotalAmount = _items.Sum(item => item.Total);
+        TotalAmount = _items.Where(item => !item.IsCancelled).Sum(item => item.Total);
 
     /// <summary>
     /// Calculates the discount based on the quantity of items.

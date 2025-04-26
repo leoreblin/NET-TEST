@@ -20,5 +20,5 @@ public record CreateSaleCommand : IRequest<CreateSaleResult>
     /// <summary>
     /// Gets or sets the list of items in the sale.
     /// </summary>
-    public List<SaleItemDto> Items { get; set; } = [];
+    public List<CreateSaleItemDto> Items { get; set; } = [];
 }

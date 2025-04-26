@@ -8,5 +8,5 @@ public sealed record CreateSaleRequest
 
     public required Guid BranchId { get; set; }
 
-    public required List<SaleItemDto> Items { get; set; }
+    public required List<CreateSaleItemDto> Items { get; set; }
 }

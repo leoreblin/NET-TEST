@@ -94,7 +94,8 @@ public sealed class GlobalExceptionHandlerMiddleware : IMiddleware
             _ => (HttpStatusCode.InternalServerError, new[]
             { 
                 ApiErrors.ServerError, 
-                new Error("Exception", exception.Message) 
+                new Error("Exception", exception.Message),
+                new Error("InnerException", exception.InnerException?.Message ?? string.Empty)
             })
         };
 }

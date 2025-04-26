@@ -1,11 +1,12 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Common;
+using Ambev.DeveloperEvaluation.Domain.Events;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
 /// <summary>
 /// Represents a sale item.
 /// </summary>
-public sealed class SaleItem : BaseEntity
+public sealed class SaleItem : AggregateRoot
 {
     /// <summary>
     /// Represents the product identifier.
@@ -33,6 +34,11 @@ public sealed class SaleItem : BaseEntity
     public decimal Total { get; private set; }
 
     /// <summary>
+    /// Gets a value indicating whether the sale item is cancelled.
+    /// </summary>
+    public bool IsCancelled { get; private set; }
+
+    /// <summary>
     /// Constructor required for EF Core.
     /// </summary>
     private SaleItem() { }
@@ -50,12 +56,27 @@ public sealed class SaleItem : BaseEntity
         int quantity,
         decimal unitPrice,
         decimal discount,
-        decimal total)
+        decimal total) : base(Guid.NewGuid())
     {
         ProductId = productId;
         Quantity = quantity;
         UnitPrice = unitPrice;
         Discount = discount;
         Total = total;
+        IsCancelled = false;
+    }
+
+    /// <summary>
+    /// Cancels the sale item.
+    /// </summary>
+    internal void Cancel()
+    {
+        if (IsCancelled)
+        {
+            return;
+        }
+
+        IsCancelled = true;
+        Raise(new SaleItemCancelledEvent(this));
     }
 }

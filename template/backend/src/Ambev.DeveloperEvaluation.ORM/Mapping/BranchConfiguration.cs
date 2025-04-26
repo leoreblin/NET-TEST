@@ -21,7 +21,7 @@ internal sealed class BranchConfiguration : IEntityTypeConfiguration<Branch>
             .IsRequired()
             .HasMaxLength(14)
             .HasConversion(
-                id => id.ToString(),
+                id => new CNPJ(id).ToStringWithoutMask(),
                 id => new CNPJ(id)
             );
     }

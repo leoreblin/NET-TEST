@@ -1,9 +1,9 @@
 ﻿using Ambev.DeveloperEvaluation.Common.Pagination;
 using Ambev.DeveloperEvaluation.Data.NoSql.Context;
+using Ambev.DeveloperEvaluation.Data.NoSql.Extensions;
 using Ambev.DeveloperEvaluation.Data.NoSql.Models;
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
-using AutoMapper;
 using MongoDB.Driver;
 
 namespace Ambev.DeveloperEvaluation.Data.NoSql.Repositories;
@@ -11,12 +11,10 @@ namespace Ambev.DeveloperEvaluation.Data.NoSql.Repositories;
 public class MongoProductRepository : IProductRepository
 {
     private readonly IMongoCollection<ProductDocument> _products;
-    private readonly IMapper _mapper;
 
-    public MongoProductRepository(MongoDbContext context, IMapper mapper)
+    public MongoProductRepository(MongoDbContext context)
     {
         _products = context.Products;
-        _mapper = mapper;
     }
 
     /// <inheritdoc />
@@ -28,7 +26,7 @@ public class MongoProductRepository : IProductRepository
 
         var product = await products.FirstOrDefaultAsync(cancellationToken);
 
-        return product is null ? null : _mapper.Map<Product>(product);
+        return product is null ? null : product.ToDomain();
     }
 
     /// <inheritdoc />
@@ -42,7 +40,7 @@ public class MongoProductRepository : IProductRepository
         var products = await _products.FindAsync(filter, cancellationToken: cancellationToken);
         var productDocuments = await products.ToListAsync(cancellationToken);
 
-        var productEntities = productDocuments.Select(_mapper.Map<Product>).ToList();
+        var productEntities = productDocuments.Select(p => p.ToDomain()).ToList();
         return productEntities;
     }
 
@@ -62,10 +60,14 @@ public class MongoProductRepository : IProductRepository
         }
 
         var found = _products.Find(filter);
+        if (!found.Any())
+        {
+            return new PaginatedList<Product>([], 0, 0, 0);
+        }
     
         var paginatedResult = await found.ToPagedListAsync(pageNumber, pageSize, orderBy, isDescending);
 
-        return paginatedResult.Map(_mapper.Map<Product>);
+        return paginatedResult.Map(p => p.ToDomain());
     }
 
     /// <inheritdoc />

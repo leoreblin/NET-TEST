@@ -4,6 +4,7 @@ using Ambev.DeveloperEvaluation.Common.Logging;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.Data.NoSql.Configurations;
+using Ambev.DeveloperEvaluation.Data.NoSql.Context;
 using Ambev.DeveloperEvaluation.Data.NoSql.Extensions;
 using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
@@ -72,13 +73,10 @@ public class Program
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
-
-            var app = builder.Build();
+            var app = builder.Build();            
 
             using var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;
-            var dbContext = services.GetService<DefaultContext>();
-            await DefaultContextSeed.SeedAsync(dbContext);
             MigrationInitializer.ApplyMigrations(services);
 
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
@@ -87,6 +85,7 @@ public class Program
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                await SeedDataAsync(app);
             }
 
             app.UseHttpsRedirection();
@@ -108,5 +107,14 @@ public class Program
         {
             Log.CloseAndFlush();
         }
+    }
+
+    private static async Task SeedDataAsync(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var dbContext = services.GetService<DefaultContext>();
+        var mongoDbContext = services.GetService<MongoDbContext>();
+        await DefaultContextSeed.SeedAsync(dbContext);
     }
 }

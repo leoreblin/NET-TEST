@@ -37,6 +37,7 @@ public sealed class SaleConfiguration : IEntityTypeConfiguration<Sale>
             itemBuilder.Property(i => i.UnitPrice).IsRequired().HasPrecision(18, 2);
             itemBuilder.Property(i => i.Discount).IsRequired().HasPrecision(18, 2);
             itemBuilder.Property(i => i.Total).IsRequired().HasPrecision(18, 2);
+            itemBuilder.Property(i => i.IsCancelled).IsRequired().HasDefaultValue(false);
         });
     }
 }

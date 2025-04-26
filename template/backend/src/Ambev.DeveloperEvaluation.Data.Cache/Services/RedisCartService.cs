@@ -8,14 +8,15 @@ namespace Ambev.DeveloperEvaluation.Data.Cache.Services;
 
 public sealed class RedisCartService : ICartService
 {
-    private readonly IDatabase _redisDb;
+    private readonly IConnectionMultiplexer _redis;
     private readonly IProductRepository _productRepository;
+    private IDatabase RedisDb => _redis.GetDatabase();
 
     public RedisCartService(
-        IDatabase redisDb,
+        IConnectionMultiplexer redis,
         IProductRepository productRepository)
     {
-        _redisDb = redisDb;
+        _redis = redis;
         _productRepository = productRepository;
     }
 
@@ -30,7 +31,7 @@ public sealed class RedisCartService : ICartService
             ?? throw new ValidationException($"Product with ID {productId} not found.");
 
         var cartKey = GetCartKey(userId);
-        await _redisDb.HashSetAsync(cartKey, productId.ToString(), quantity);
+        await RedisDb.HashSetAsync(cartKey, productId.ToString(), quantity);
         await SetCartExpirationAsync(cartKey);
     }
 
@@ -38,7 +39,7 @@ public sealed class RedisCartService : ICartService
     public async Task<Cart> GetCartAsync(Guid userId, CancellationToken cancellationToken)
     {
         var cartKey = GetCartKey(userId);
-        var entries = await _redisDb.HashGetAllAsync(cartKey);
+        var entries = await RedisDb.HashGetAllAsync(cartKey);
 
         var productIds = entries.Select(e => Guid.Parse(e.Name!)).ToList();
         var products = await _productRepository.GetByIdsAsync(productIds, cancellationToken);
@@ -66,7 +67,14 @@ public sealed class RedisCartService : ICartService
     public async Task ClearCartAsync(Guid userId)
     {
         var cartKey = GetCartKey(userId);
-        await _redisDb.KeyDeleteAsync(cartKey);
+        await RedisDb.KeyDeleteAsync(cartKey);
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveProductAsync(Guid userId, Guid productId)
+    {
+        var cartKey = GetCartKey(userId);
+        await RedisDb.HashDeleteAsync(cartKey, productId.ToString());
     }
 
     private static string GetCartKey(Guid userId) => $"cart:{userId}";
@@ -74,6 +82,6 @@ public sealed class RedisCartService : ICartService
     private async Task SetCartExpirationAsync(string cartKey)
     {
         var expirationTime = TimeSpan.FromHours(1);
-        await _redisDb.KeyExpireAsync(cartKey, expirationTime);
+        await RedisDb.KeyExpireAsync(cartKey, expirationTime);
     }
 }

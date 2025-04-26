@@ -30,28 +30,23 @@ public sealed class UnitOfWork : IUnitOfWork
     /// <inheritdoc />
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        var aggregates = _context.ChangeTracker
+            .Entries<AggregateRoot>()
+            .Where(entry => entry.Entity.Events.Count != 0)
+            .Select(entry => entry.Entity)
+            .ToList();
 
-        try
+        var domainEvents = aggregates
+            .SelectMany(aggregate => aggregate.Events)
+            .ToList();
+
+        aggregates.ForEach(aggregate => aggregate.ClearEvents());
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        foreach (var domainEvent in domainEvents)
         {
-            var domainEvents = _context.ChangeTracker.Entries<AggregateRoot>()
-                .Select(agg => agg.Entity)
-                .Where(agg => agg.Events.Count != 0)
-                .SelectMany(agg => agg.Events);
-
-            await _context.SaveChangesAsync(cancellationToken);
-            transaction.Commit();
-
-            foreach (var domainEvent in domainEvents)
-            {
-                await _publisher.Publish(domainEvent, cancellationToken);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving changes to the database.");
-            transaction.Rollback();
-            throw;
+            await _publisher.Publish(domainEvent, cancellationToken);
         }
     }
 }
