@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Ambev.DeveloperEvaluation.Common.Pagination;
+using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Common;
 
-[Route("api/[controller]")]
+[Route("api/v1")]
 [ApiController]
 public class BaseController : ControllerBase
 {
@@ -26,7 +27,7 @@ public class BaseController : ControllerBase
         base.NotFound(new ApiResponse { Message = message, Success = false });
 
     protected IActionResult OkPaginated<T>(PaginatedList<T> pagedList) =>
-            Ok(new PaginatedResponse<T>
+            base.Ok(new PaginatedResponse<T>
             {
                 Data = pagedList,
                 CurrentPage = pagedList.CurrentPage,

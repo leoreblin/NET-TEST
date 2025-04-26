@@ -1,6 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using MongoDB.Driver;
 
-namespace Ambev.DeveloperEvaluation.WebApi.Common;
+namespace Ambev.DeveloperEvaluation.Common.Pagination;
 
 public class PaginatedList<T> : List<T>
 {
@@ -15,17 +15,15 @@ public class PaginatedList<T> : List<T>
     public PaginatedList(List<T> items, int count, int pageNumber, int pageSize)
     {
         TotalCount = count;
-        PageSize = pageSize;
-        CurrentPage = pageNumber;
+        PageSize = pageSize < 10 ? 10 : pageSize;
+        CurrentPage = pageNumber <= 0 ? 1 : pageNumber;
         TotalPages = (int)Math.Ceiling(count / (double)pageSize);
 
         AddRange(items);
     }
 
-    public static async Task<PaginatedList<T>> CreateAsync(IQueryable<T> source, int pageNumber, int pageSize)
+    public PaginatedList<TDTO> Map<TDTO>(Func<T, TDTO> mapper)
     {
-        var count = await source.CountAsync();
-        var items = await source.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
-        return new PaginatedList<T>(items, count, pageNumber, pageSize);
+        return new([.. this.Select(mapper)], TotalCount, CurrentPage, PageSize);
     }
 }

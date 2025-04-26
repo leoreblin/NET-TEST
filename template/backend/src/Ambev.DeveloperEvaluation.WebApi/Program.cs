@@ -3,18 +3,22 @@ using Ambev.DeveloperEvaluation.Common.HealthChecks;
 using Ambev.DeveloperEvaluation.Common.Logging;
 using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
+using Ambev.DeveloperEvaluation.Data.NoSql.Configurations;
+using Ambev.DeveloperEvaluation.Data.NoSql.Context;
+using Ambev.DeveloperEvaluation.Data.NoSql.Extensions;
 using Ambev.DeveloperEvaluation.IoC;
 using Ambev.DeveloperEvaluation.ORM;
 using Ambev.DeveloperEvaluation.WebApi.Middleware;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
+using StackExchange.Redis;
 
 namespace Ambev.DeveloperEvaluation.WebApi;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         try
         {
@@ -32,7 +36,20 @@ public class Program
             builder.Services.AddDbContext<DefaultContext>(options =>
                 options.UseNpgsql(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsAssembly("Ambev.DeveloperEvaluation.ORM")
+                    b => b.MigrationsAssembly(typeof(OrmLayer).Assembly.FullName)
+                )
+            );
+
+            builder.Services.AddOptions<MongoDbSettings>()
+               .BindConfiguration(MongoDbSettings.ConfigurationSection)
+               .ValidateDataAnnotations()
+               .ValidateOnStart();
+
+            builder.Services.AddMongoDb();
+
+            builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+                ConnectionMultiplexer.Connect(
+                    builder.Configuration.GetConnectionString("Redis")!
                 )
             );
 
@@ -40,7 +57,10 @@ public class Program
 
             builder.RegisterDependencies();
 
-            builder.Services.AddAutoMapper(typeof(Program).Assembly, typeof(ApplicationLayer).Assembly);
+            builder.Services.AddAutoMapper(
+                typeof(Program).Assembly,
+                typeof(ApplicationLayer).Assembly,
+                typeof(OrmLayer).Assembly);
 
             builder.Services.AddMediatR(cfg =>
             {
@@ -52,13 +72,20 @@ public class Program
 
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
-            var app = builder.Build();
-            app.UseMiddleware<ValidationExceptionMiddleware>();
+            builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
+            var app = builder.Build();            
+
+            using var scope = app.Services.CreateScope();
+            var services = scope.ServiceProvider;
+            MigrationInitializer.ApplyMigrations(services);
+
+            app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
+                await SeedDataAsync(app);
             }
 
             app.UseHttpsRedirection();
@@ -80,5 +107,14 @@ public class Program
         {
             Log.CloseAndFlush();
         }
+    }
+
+    private static async Task SeedDataAsync(WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var dbContext = services.GetService<DefaultContext>();
+        var mongoDbContext = services.GetService<MongoDbContext>();
+        await DefaultContextSeed.SeedAsync(dbContext);
     }
 }

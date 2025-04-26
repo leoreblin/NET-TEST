@@ -26,8 +26,10 @@ services:
       POSTGRES_DB: developer_evaluation
       POSTGRES_USER: developer
       POSTGRES_PASSWORD: ev@luAt10n
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432"
+      - "5432:5432"
     restart: unless-stopped
 
   ambev.developerevaluation.nosql:
@@ -35,16 +37,31 @@ services:
     image: mongo:8.0    
     environment:
         MONGO_INITDB_ROOT_USERNAME: developer
-        MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
+        MONGO_INITDB_ROOT_PASSWORD: ev4luAt!0n
     ports:
-      - "27017"
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    healthcheck:
+        test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+    restart: unless-stopped
 
   ambev.developerevaluation.cache:
     container_name: ambev_developer_evaluation_cache 
     image: redis:7.4.1-alpine     
-    command: redis-server --requirepass ev@luAt10n
+    command: redis-server --requirepass ev4luAt!0n
     environment:
        MONGO_INITDB_ROOT_USERNAME: developer
-       MONGO_INITDB_ROOT_PASSWORD: ev@luAt10n
+       MONGO_INITDB_ROOT_PASSWORD: ev4luAt!0n
     ports:
-       - "6379"
+       - "6379:6379"
+
+volumes:
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local  

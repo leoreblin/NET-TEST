@@ -2,6 +2,7 @@ using Ambev.DeveloperEvaluation.Common.Security;
 using Ambev.DeveloperEvaluation.Common.Validation;
 using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Enums;
+using Ambev.DeveloperEvaluation.Domain.Events;
 using Ambev.DeveloperEvaluation.Domain.Validation;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
@@ -11,7 +12,7 @@ namespace Ambev.DeveloperEvaluation.Domain.Entities;
 /// Represents a user in the system with authentication and profile information.
 /// This entity follows domain-driven design principles and includes business rules validation.
 /// </summary>
-public class User : BaseEntity, IUser
+public class User : AggregateRoot, IUser
 {
     /// <summary>
     /// Gets the user's full name.
@@ -42,7 +43,7 @@ public class User : BaseEntity, IUser
     /// Gets the user's role in the system.
     /// Determines the user's permissions and access levels.
     /// </summary>
-    public UserRole Role { get;     set; }
+    public UserRole Role { get; set; }
 
     /// <summary>
     /// Gets the user's current status.
@@ -143,4 +144,7 @@ public class User : BaseEntity, IUser
         Status = UserStatus.Suspended;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void AddCreatedEvent()
+        => Raise(new UserRegisteredEvent(this));
 }
