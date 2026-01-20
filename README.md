@@ -1,86 +1,44 @@
-# Developer Evaluation Project
-
-`READ CAREFULLY`
-
-## Instructions
-**The test below will have up to 7 calendar days to be delivered from the date of receipt of this manual.**
-
-- The code must be versioned in a public Github repository and a link must be sent for evaluation once completed
-- Upload this template to your repository and start working from it
-- Read the instructions carefully and make sure all requirements are being addressed
-- The repository must provide instructions on how to configure, execute and test the project
-- Documentation and overall organization will also be taken into consideration
-
-## Use Case
-**You are a developer on the DeveloperStore team. Now we need to implement the API prototypes.**
-
-As we work with `DDD`, to reference entities from other domains, we use the `External Identities` pattern with denormalization of entity descriptions.
-
-Therefore, you will write an API (complete CRUD) that handles sales records. The API needs to be able to inform:
-
-* Sale number
-* Date when the sale was made
-* Customer
-* Total sale amount
-* Branch where the sale was made
-* Products
-* Quantities
-* Unit prices
-* Discounts
-* Total amount for each item
-* Cancelled/Not Cancelled
-
-It's not mandatory, but it would be a differential to build code for publishing events of:
-* SaleCreated
-* SaleModified
-* SaleCancelled
-* ItemCancelled
-
-If you write the code, **it's not required** to actually publish to any Message Broker. You can log a message in the application log or however you find most convenient.
-
-### Business Rules
-
-* Purchases above 4 identical items have a 10% discount
-* Purchases between 10 and 20 identical items have a 20% discount
-* It's not possible to sell above 20 identical items
-* Purchases below 4 items cannot have a discount
-
-These business rules define quantity-based discounting tiers and limitations:
-
-1. Discount Tiers:
-   - 4+ items: 10% discount
-   - 10-20 items: 20% discount
-
-2. Restrictions:
-   - Maximum limit: 20 items per product
-   - No discounts allowed for quantities below 4 items
+# Developer Evaluation Project (.NET)
 
 ## Overview
-This section provides a high-level overview of the project and the various skills and competencies it aims to assess for developer candidates. 
+This repository contains a sales API built with a DDD-inspired structure. The focus is the Sales aggregate and its business rules (discounts, limits, and cancellation) with clean layering and consistent error handling.
 
-See [Overview](/.doc/overview.md)
+## Architecture
+- Domain: aggregates, business rules, domain events.
+- Application: use cases with MediatR handlers, validation, and event handlers.
+- ORM: EF Core mappings, repositories, and migrations.
+- WebApi: controllers, request validation, and middleware (ProblemDetails).
 
-## Tech Stack
-This section lists the key technologies used in the project, including the backend, testing, frontend, and database components. 
+## Business Rules
+- Quantity based discounts per product:
+  - 4-9 items: 10% discount
+  - 10-20 items: 20% discount
+- Maximum of 20 identical items per product.
+- No discount for quantities below 4.
+- A cancelled sale cancels all items and has total 0.
+- Updating a sale replaces active items by product; missing items are cancelled.
 
-See [Tech Stack](/.doc/tech-stack.md)
+## Running the project
+From `template/backend`:
 
-## Frameworks
-This section outlines the frameworks and libraries that are leveraged in the project to enhance development productivity and maintainability. 
+### With Docker (recommended)
+1) `docker compose up -d --build`
+2) `dotnet run --project src/Ambev.DeveloperEvaluation.WebApi`
 
-See [Frameworks](/.doc/frameworks.md)
+The application applies EF Core migrations at startup.
 
-<!-- 
-## API Structure
-This section includes links to the detailed documentation for the different API resources:
-- [API General](./docs/general-api.md)
-- [Products API](/.doc/products-api.md)
-- [Carts API](/.doc/carts-api.md)
-- [Users API](/.doc/users-api.md)
-- [Auth API](/.doc/auth-api.md)
--->
+### Local runtime
+- .NET SDK 8
+- PostgreSQL, MongoDB, and Redis running locally
+- Update connection strings in `template/backend/src/Ambev.DeveloperEvaluation.WebApi/appsettings.json` if needed
 
-## Project Structure
-This section describes the overall structure and organization of the project files and directories. 
+Run:
+- `dotnet run --project template/backend/src/Ambev.DeveloperEvaluation.WebApi`
 
-See [Project Structure](/.doc/project-structure.md)
+## Running tests
+- `dotnet test template/backend/tests/Ambev.DeveloperEvaluation.Unit/Ambev.DeveloperEvaluation.Unit.csproj`
+
+## Notes and decisions
+- Error responses follow ProblemDetails via a global exception middleware.
+- Domain events are published via MediatR handlers and logged (SaleCreated, SaleModified, SaleCancelled, SaleItemCancelled).
+- Sales totals are calculated inside the aggregate based on active (non-cancelled) items.
