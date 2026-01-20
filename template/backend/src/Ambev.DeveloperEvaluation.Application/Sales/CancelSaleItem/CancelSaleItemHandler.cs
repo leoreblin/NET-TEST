@@ -1,5 +1,6 @@
 ﻿using Ambev.DeveloperEvaluation.Application.Abstractions;
 using Ambev.DeveloperEvaluation.Domain.Entities;
+using Ambev.DeveloperEvaluation.Domain.Exceptions;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using FluentValidation;
 using MediatR;
@@ -27,13 +28,15 @@ internal sealed class CancelSaleItemHandler : IRequestHandler<CancelSaleItemComm
         }
 
         Sale sale = await _saleRepository.GetByIdAsync(request.SaleId, cancellationToken)
-            ?? throw new ValidationException("Sale does not exist.");
+            ?? throw new KeyNotFoundException("Sale does not exist.");
 
         if (sale.IsCancelled)
-            throw new ValidationException("Cannot cancel an item of a cancelled sale.");
+            throw new DomainException("Cannot cancel an item of a cancelled sale.");
 
-        SaleItem saleItem = sale.Items.FirstOrDefault(item => item.Id == request.SaleItemId) 
-            ?? throw new ValidationException("Sale item does not exist.");
+        if (sale.Items.All(item => item.Id != request.SaleItemId))
+        {
+            throw new KeyNotFoundException("Sale item does not exist.");
+        }
 
         sale.CancelItem(request.SaleItemId);
 

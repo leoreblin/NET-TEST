@@ -30,7 +30,7 @@ internal sealed class CancelSaleHandler : IRequestHandler<CancelSaleCommand, Uni
         CancellationToken cancellationToken)
     {
         var sale = await _saleRespository.GetByIdAsync(request.SaleId, cancellationToken)
-            ?? throw new ValidationException("Sale does not exist.");
+            ?? throw new KeyNotFoundException("Sale does not exist.");
 
         sale.Cancel();
 

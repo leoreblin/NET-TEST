@@ -22,6 +22,14 @@ public interface ISaleRepository
     Task<Sale?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves a sale by its identifier with change tracking enabled.
+    /// </summary>
+    /// <param name="id">The sale identifier.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns></returns>
+    Task<Sale?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves the sales of a customer.
     /// </summary>
     /// <param name="customerId"></param>

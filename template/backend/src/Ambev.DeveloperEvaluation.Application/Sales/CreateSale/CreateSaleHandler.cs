@@ -2,6 +2,7 @@
 using Ambev.DeveloperEvaluation.Domain.Entities;
 using Ambev.DeveloperEvaluation.Domain.Enums;
 using Ambev.DeveloperEvaluation.Domain.Repositories;
+using Ambev.DeveloperEvaluation.Domain.ValueObjects;
 using FluentValidation;
 using MediatR;
 
@@ -63,10 +64,11 @@ internal sealed class CreateSaleHandler : IRequestHandler<CreateSaleCommand, Cre
         if (!productsExist)
             throw new ValidationException("Some products do not exist.");
 
-        foreach (var item in request.Items)
-        {
-            sale.AddItem(item.ProductId, item.Quantity, item.UnitPrice);
-        }
+        var saleItems = request.Items
+            .Select(item => new SaleItemDraft(item.ProductId, item.Quantity, item.UnitPrice))
+            .ToList();
+
+        sale.ReplaceItems(saleItems);
 
         await _saleRepository.CreateAsync(sale, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

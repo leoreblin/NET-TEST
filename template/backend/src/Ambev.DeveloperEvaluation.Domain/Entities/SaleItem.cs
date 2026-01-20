@@ -1,5 +1,6 @@
 ﻿using Ambev.DeveloperEvaluation.Domain.Common;
 using Ambev.DeveloperEvaluation.Domain.Events;
+using Ambev.DeveloperEvaluation.Domain.Exceptions;
 
 namespace Ambev.DeveloperEvaluation.Domain.Entities;
 
@@ -78,5 +79,18 @@ public sealed class SaleItem : AggregateRoot
 
         IsCancelled = true;
         Raise(new SaleItemCancelledEvent(this));
+    }
+
+    internal void UpdatePricing(int quantity, decimal unitPrice, decimal discount, decimal total)
+    {
+        if (IsCancelled)
+        {
+            throw new DomainException("Cannot update a cancelled sale item.");
+        }
+
+        Quantity = quantity;
+        UnitPrice = unitPrice;
+        Discount = discount;
+        Total = total;
     }
 }

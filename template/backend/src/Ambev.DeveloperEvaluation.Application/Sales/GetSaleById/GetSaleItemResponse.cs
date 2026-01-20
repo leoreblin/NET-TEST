@@ -10,6 +10,7 @@ public record GetSaleItemResponse
     public decimal ItemUnitPrice { get; set; }
     public decimal ItemDiscount { get; set; }
     public decimal ItemTotal { get; set; }
+    public bool IsCancelled { get; set; }
 
     public static implicit operator GetSaleItemResponse(SaleItem entity)
     {
@@ -20,7 +21,8 @@ public record GetSaleItemResponse
             ItemQuantity = entity.Quantity,
             ItemUnitPrice = entity.UnitPrice,
             ItemDiscount = entity.Discount,
-            ItemTotal = Math.Round(entity.Total, 2)
+            ItemTotal = Math.Round(entity.Total, 2),
+            IsCancelled = entity.IsCancelled
         };
     }
 }

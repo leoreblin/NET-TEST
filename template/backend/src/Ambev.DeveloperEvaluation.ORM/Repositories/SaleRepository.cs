@@ -31,7 +31,17 @@ public sealed class SaleRepository : ISaleRepository
             .AsNoTracking()
             .Include(s => s.Customer)
             .Include(s => s.Branch)
-            .Include(s => s.Items.Where(i => !i.IsCancelled))
+            .Include(s => s.Items)
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Sale?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Sales
+            .Include(s => s.Customer)
+            .Include(s => s.Branch)
+            .Include(s => s.Items)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
@@ -47,7 +57,7 @@ public sealed class SaleRepository : ISaleRepository
             .AsNoTracking()
             .Include(s => s.Customer)
             .Include(s => s.Branch)
-            .Include(s => s.Items.Where(i => !i.IsCancelled))
+            .Include(s => s.Items)
             .Where(s => s.CustomerId == customerId);
 
         if (!string.IsNullOrWhiteSpace(saleNumber))
