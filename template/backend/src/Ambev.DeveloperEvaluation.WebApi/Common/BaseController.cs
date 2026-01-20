@@ -21,10 +21,20 @@ public class BaseController : ControllerBase
         base.CreatedAtRoute(routeName, routeValues, new ApiResponseWithData<T> { Data = data, Success = true });
 
     protected IActionResult BadRequest(string message) =>
-        base.BadRequest(new ApiResponse { Message = message, Success = false });
+        base.BadRequest(new ProblemDetails
+        {
+            Title = "Bad Request",
+            Status = StatusCodes.Status400BadRequest,
+            Detail = message
+        });
 
     protected IActionResult NotFound(string message = "Resource not found") =>
-        base.NotFound(new ApiResponse { Message = message, Success = false });
+        base.NotFound(new ProblemDetails
+        {
+            Title = "Not Found",
+            Status = StatusCodes.Status404NotFound,
+            Detail = message
+        });
 
     protected IActionResult OkPaginated<T>(PaginatedList<T> pagedList) =>
             base.Ok(new PaginatedResponse<T>

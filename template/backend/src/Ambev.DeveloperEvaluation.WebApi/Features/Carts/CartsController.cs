@@ -2,6 +2,7 @@
 using Ambev.DeveloperEvaluation.Domain.Services;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Carts.AddItem;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Carts;
@@ -25,13 +26,13 @@ public class CartsController : BaseController
     /// <returns></returns>
     [HttpGet("{customerId:guid}")]
     [ProducesResponseType(typeof(ApiResponseWithData<Cart>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCart(Guid customerId, CancellationToken cancellationToken)
     {
         var cart = await _cartService.GetCartAsync(customerId, cancellationToken);
         if (cart is null)
         {
-            return NotFound();
+            throw new KeyNotFoundException("Cart not found.");
         }
 
         return Ok(cart);
@@ -46,8 +47,8 @@ public class CartsController : BaseController
     /// <returns></returns>
     [HttpPost("{customerId:guid}")]
     [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AddToCart(
         Guid customerId,
         [FromBody] AddItemDto request,
@@ -55,13 +56,13 @@ public class CartsController : BaseController
     {
         if (request.Quantity == 0)
         {
-            return BadRequest("At least 1 product must be added in the cart.");
+            throw new ValidationException("At least 1 product must be added in the cart.");
         }
 
         var theCart = await _cartService.GetCartAsync(customerId, cancellationToken);
         if (theCart is null)
         {
-            return NotFound();
+            throw new KeyNotFoundException("Cart not found.");
         }
 
         await _cartService.AddToCartAsync(
@@ -81,13 +82,13 @@ public class CartsController : BaseController
     /// <returns></returns>
     [HttpDelete("{customerId:guid}")]
     [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ClearCart(Guid customerId, CancellationToken cancellationToken)
     {
         var theCart = await _cartService.GetCartAsync(customerId, cancellationToken);
         if (theCart is null)
         {
-            return NotFound();
+            throw new KeyNotFoundException("Cart not found.");
         }
 
         await _cartService.ClearCartAsync(customerId);
@@ -103,13 +104,13 @@ public class CartsController : BaseController
     /// <returns></returns>
     [HttpDelete("{customerId:guid}/remove/{productId:guid}")]
     [ProducesResponseType(typeof(NoContentResult), StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RemoveProduct(Guid customerId, Guid productId, CancellationToken cancellationToken)
     {
         var theCart = await _cartService.GetCartAsync(customerId, cancellationToken);
         if (theCart is null)
         {
-            return NotFound();
+            throw new KeyNotFoundException("Cart not found.");
         }
 
         await _cartService.RemoveProductAsync(customerId, productId);

@@ -2,6 +2,7 @@
 using Ambev.DeveloperEvaluation.Domain.Repositories;
 using Ambev.DeveloperEvaluation.WebApi.Common;
 using Ambev.DeveloperEvaluation.WebApi.Features.Products.GetProducts;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Features.Products;
@@ -34,13 +35,13 @@ public class ProductsController : BaseController
     /// <returns></returns>
     [HttpGet]
     [ProducesResponseType(typeof(ApiResponseWithData<Product>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Get([FromQuery] GetProductsQueryData query)
     {
         if (!string.IsNullOrWhiteSpace(query.OrderBy) &&
             !PropertyHelper<Product>.IsValidProperty(query.OrderBy))
         {
-            return BadRequest(
+            throw new ValidationException(
                 $"Invalid sort property '{query.OrderBy}'. Valid properties are: " +
                 string.Join(", ", PropertyHelper<Product>.GetValidProperties()));
         }

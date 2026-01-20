@@ -33,6 +33,7 @@ public class Program
             builder.AddBasicHealthChecks();
             builder.Services.AddSwaggerGen();
 
+            // PostgreSQL Configuration
             builder.Services.AddDbContext<DefaultContext>(options =>
                 options.UseNpgsql(
                     builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -40,6 +41,7 @@ public class Program
                 )
             );
 
+            // MongoDB Configuration
             builder.Services.AddOptions<MongoDbSettings>()
                .BindConfiguration(MongoDbSettings.ConfigurationSection)
                .ValidateDataAnnotations()
@@ -47,16 +49,19 @@ public class Program
 
             builder.Services.AddMongoDb();
 
+            // Redis Configuration
             builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
                 ConnectionMultiplexer.Connect(
                     builder.Configuration.GetConnectionString("Redis")!
                 )
             );
 
+            // JWT Authentication Configuration
             builder.Services.AddJwtAuthentication(builder.Configuration);
 
             builder.RegisterDependencies();
 
+            // AutoMapper and MediatR Configuration
             builder.Services.AddAutoMapper(
                 typeof(Program).Assembly,
                 typeof(ApplicationLayer).Assembly,
@@ -73,12 +78,14 @@ public class Program
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             builder.Services.AddTransient<GlobalExceptionHandlerMiddleware>();
-            var app = builder.Build();            
+            var app = builder.Build();
 
+            // Apply Migrations
             using var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;
             MigrationInitializer.ApplyMigrations(services);
 
+            // Configure the HTTP request pipeline.
             app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
             if (app.Environment.IsDevelopment())

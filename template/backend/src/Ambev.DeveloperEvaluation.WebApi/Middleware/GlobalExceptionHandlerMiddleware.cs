@@ -1,9 +1,8 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
-using Ambev.DeveloperEvaluation.Common.Errors;
 using Ambev.DeveloperEvaluation.Domain.Exceptions;
-using Ambev.DeveloperEvaluation.WebApi.Common;
 using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Ambev.DeveloperEvaluation.WebApi.Middleware;
 
@@ -50,52 +49,79 @@ public sealed class GlobalExceptionHandlerMiddleware : IMiddleware
     /// <returns>The HTTP response that is modified based on the exception.</returns>
     private static async Task HandleExceptionAsync(HttpContext context, Exception ex)
     {
-        (HttpStatusCode statusCode, IReadOnlyCollection<Error> errors) = GetHttpStatusCodeAndErrors(ex);
+        var problemDetails = CreateProblemDetails(ex);
 
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = (int)statusCode;
+        context.Response.ContentType = "application/problem+json";
+        context.Response.StatusCode = problemDetails.Status ?? (int)HttpStatusCode.InternalServerError;
 
-        string response = JsonSerializer.Serialize(
-            new ApiErrorResponse(errors),
-            JsonSerializerOptions
-        );
+        string response = JsonSerializer.Serialize(problemDetails, JsonSerializerOptions);
 
         await context.Response.WriteAsync(response);
     }
 
-    /// <summary>
-    /// Gets the HTTP status code and errors based on the exception type.
-    /// </summary>
-    /// <param name="exception">The exception that has occurred.</param>
-    /// <returns>The HTTP status code and collection of errors for the specified exception.</returns>
-    private static (HttpStatusCode statusCode, IReadOnlyCollection<Error> errors) GetHttpStatusCodeAndErrors(Exception exception) 
+    private static ProblemDetails CreateProblemDetails(Exception exception)
         => exception switch
         {
-            ValidationException validationException => (
-                HttpStatusCode.BadRequest, 
-                validationException.Errors.Distinct().Select(e => new Error(e.ErrorCode, e.ErrorMessage)).ToArray()
-            ),
+            ValidationException validationException => CreateValidationProblemDetails(validationException),
 
-            DomainException domainException => (
-                HttpStatusCode.UnprocessableEntity,
-                new[] { new Error("Domain.Error", domainException.Message) }
-            ),
+            DomainException domainException => new ProblemDetails
+            {
+                Status = StatusCodes.Status422UnprocessableEntity,
+                Title = "Unprocessable Entity",
+                Detail = domainException.Message
+            },
 
-            UnauthorizedAccessException unauthorizedException => (
-                HttpStatusCode.Unauthorized,
-                new[] { new Error("Unauthorized", unauthorizedException.Message) }
-            ),
+            UnauthorizedAccessException unauthorizedException => new ProblemDetails
+            {
+                Status = StatusCodes.Status401Unauthorized,
+                Title = "Unauthorized",
+                Detail = unauthorizedException.Message
+            },
 
-            KeyNotFoundException notFoundException => (
-                HttpStatusCode.NotFound,
-                new[] { new Error("NotFound", notFoundException.Message) }
-            ),
+            KeyNotFoundException notFoundException => new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Not Found",
+                Detail = notFoundException.Message
+            },
 
-            _ => (HttpStatusCode.InternalServerError, new[]
-            { 
-                ApiErrors.ServerError, 
-                new Error("Exception", exception.Message),
-                new Error("InnerException", exception.InnerException?.Message ?? string.Empty)
-            })
+            _ => new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Internal Server Error",
+                Detail = exception.Message
+            }
         };
+
+    private static ValidationProblemDetails CreateValidationProblemDetails(ValidationException exception)
+    {
+        var validationFailures = exception.Errors?.ToList() ?? [];
+
+        if (validationFailures.Count == 0 && !string.IsNullOrWhiteSpace(exception.Message))
+        {
+            return new ValidationProblemDetails(new Dictionary<string, string[]>
+            {
+                ["General"] = [exception.Message]
+            })
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Validation Failed",
+                Detail = "One or more validation errors occurred."
+            };
+        }
+
+        var errors = validationFailures
+            .GroupBy(error => string.IsNullOrWhiteSpace(error.PropertyName) ? "General" : error.PropertyName)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(error => error.ErrorMessage).Distinct().ToArray()
+            );
+
+        return new ValidationProblemDetails(errors)
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Validation Failed",
+            Detail = "One or more validation errors occurred."
+        };
+    }
 }
